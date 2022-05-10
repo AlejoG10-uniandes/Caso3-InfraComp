@@ -30,7 +30,7 @@ public class Servidor extends Conexion {
 	 */
 	
 	/**
-	 * Server Sockes - Socket del Servidor
+	 * Server Socket - Socket del Servidor
 	 */
 	private ServerSocket ss;
 	
@@ -125,32 +125,28 @@ public class Servidor extends Conexion {
 	public void leerMensajesCliente() throws IOException {
 		String str;
 		while(!(str = bf.readLine()).equals("END")) {
-			
-			if (str == null)
-				continue;
-			
-			
-			
-			// mensaje 1 - inicio de sesion
-            if (str.equalsIgnoreCase("INICIO")) {
-            	System.out.println("Cliente: " + str + "\n");
-            	pw.println("ACK");
-            }
-            
-            // mensaje 2 - reto
-            if (str.startsWith("reto -> ")) {
-            	System.out.println("Cliente: " + str + "\n");
-            	reto = str.substring(8, str.length());
 
-				// mensaje 3 - encriptar reto con llave privada
+			// mensaje 1 - inicio de sesion
+      if (str.equalsIgnoreCase("INICIO")) {
+        System.out.println("Cliente: " + str + "\n");
+        System.out.println("El Cliente ha iniciado sesion\n");
+        pw.println("ACK");
+      }
+            
+      // mensaje 2 - reto
+      if (str.startsWith("<")) {
+        System.out.println("Cliente: " + str + "\n");
+        reto = str.substring(1, str.length()-1);
+        System.out.println("El cliente ha enviado el reto: " + reto + "\n");
+            	
+        // mensaje 3 - encriptar reto con llave privada
 				String encodedMessage = cifrarConLlavePrivada(reto);
 
 				// envío reto encriptado RSA
 				pw.println(encodedMessage);
-
-				}
-
-
+        
+       }
+       
 			// mensaje 4 recibe llave simetrica encriptada y confirma con "ACK"
 			if (str.startsWith("llave simetrica: ")) {
 

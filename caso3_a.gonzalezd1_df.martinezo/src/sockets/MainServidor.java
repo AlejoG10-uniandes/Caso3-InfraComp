@@ -6,6 +6,7 @@ public class MainServidor {
 	
 	/**
 	 * Metodo main del Servidor
+	 * Llama al metodo start() de la clase Servidor
 	 * @param args
 	 * @throws IOException
 	 */
