@@ -1,10 +1,15 @@
 package sockets;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.security.*;
+import java.security.spec.*;
+import javax.crypto.*;
 
 public class Cliente extends Conexion {
 	
@@ -29,6 +34,8 @@ public class Cliente extends Conexion {
 	 */
 	private BufferedReader bf;
 	
+	private PublicKey publicKeyServer;
+	
 	/**
 	 * -------
 	 * METODOS
@@ -47,8 +54,25 @@ public class Cliente extends Conexion {
 	
 	/**
 	 * Paso 1: El Cliente lee la llave publica del Servidor
+	 * @throws IOException 
 	 */
-	public void leerPkServidor() {
+	public void leerPkServidor() throws IOException {
+		
+		File publicKeyFile = new File("public.key");
+		byte[] publicKeyBytes = Files.readAllBytes(publicKeyFile.toPath());
+		
+		KeyFactory keyFactory;
+		try {
+			keyFactory = KeyFactory.getInstance("RSA");
+			EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
+			publicKeyServer = keyFactory.generatePublic(publicKeySpec);
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 	
@@ -57,7 +81,11 @@ public class Cliente extends Conexion {
 	 * @throws IOException 
 	 */
 	public void peticionIniciarSesion() throws IOException {
-		pw.println("Peticion para iniciar sesion");
+		
+		
+		
+		
+		pw.println("INICIO");
 		pw.flush();
 		
 		String str = bf.readLine();

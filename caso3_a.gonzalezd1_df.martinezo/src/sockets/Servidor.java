@@ -1,11 +1,15 @@
 package sockets;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.*;
+import javax.crypto.*;
 
 /**
  * Clase que hace uso del servidor
@@ -31,12 +35,12 @@ public class Servidor extends Conexion {
 	/**
 	 * Llave privada (secret) del Servidor
 	 */
-	private String sk;
+	private PrivateKey privateKey;
 	
 	/**
 	 * Llave publica (public) del Servidor
 	 */
-	private String pk;
+	private PublicKey publicKey;
 	
 	/**
 	 * Reto numerico enviado por el Cliente
@@ -78,10 +82,12 @@ public class Servidor extends Conexion {
 			if (str == null)
 				continue;
 			
+			generarLlavesPublicaPrivada();
+			
 			// mensaje 1 - inicio de sesion
-            if (str.equalsIgnoreCase("Peticion para iniciar sesion")) {
+            if (str.equalsIgnoreCase("INICIO")) {
             	System.out.println("Cliente: " + str + "\n");
-            	pw.println("Inicio de sesion completado exitosamente");
+            	pw.println("ACK");
             }
             
             // mensaje 2 - reto
@@ -95,6 +101,34 @@ public class Servidor extends Conexion {
             
             pw.flush();
         }
+	}
+	
+	public void generarLlavesPublicaPrivada() {
+		
+		KeyPairGenerator generator;
+		
+		try {
+			
+			generator = KeyPairGenerator.getInstance("RSA");
+			generator.initialize(1024);
+			KeyPair pair = generator.generateKeyPair();
+			privateKey = pair.getPrivate();
+			publicKey = pair.getPublic();
+			
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		try (FileOutputStream fos = new FileOutputStream("public.key")) {
+		    fos.write(publicKey.getEncoded());
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void start() throws IOException
