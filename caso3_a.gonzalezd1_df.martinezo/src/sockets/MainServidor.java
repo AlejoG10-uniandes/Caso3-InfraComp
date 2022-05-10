@@ -1,0 +1,16 @@
+package sockets;
+
+import java.io.IOException;
+
+public class MainServidor {
+	
+	/**
+	 * Metodo main del Servidor
+	 * @param args
+	 * @throws IOException
+	 */
+	public static void main(String[] args) throws IOException {
+		Servidor servidor = new Servidor();
+		servidor.start();
+	}
+}
