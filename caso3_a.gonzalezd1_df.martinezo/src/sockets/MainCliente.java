@@ -1,6 +1,7 @@
 package sockets;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 public class MainCliente {
 	
@@ -12,6 +13,11 @@ public class MainCliente {
 	 */
 	public static void main(String[] args) throws IOException {
 		Cliente cliente = new Cliente();
-		cliente.start();
+		try {
+			cliente.start();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
