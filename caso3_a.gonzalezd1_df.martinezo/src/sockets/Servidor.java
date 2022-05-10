@@ -19,7 +19,7 @@ public class Servidor extends Conexion {
 	 */
 	
 	/**
-	 * Server Sockes - Socket del Servidor
+	 * Server Socket - Socket del Servidor
 	 */
 	private ServerSocket ss;
 	
@@ -75,19 +75,21 @@ public class Servidor extends Conexion {
 		String str;
 		while(!(str = bf.readLine()).equals("END")) {
 			
-			if (str == null)
-				continue;
-			
 			// mensaje 1 - inicio de sesion
-            if (str.equalsIgnoreCase("Peticion para iniciar sesion")) {
+            if (str.equalsIgnoreCase("INICIO")) {
             	System.out.println("Cliente: " + str + "\n");
-            	pw.println("Inicio de sesion completado exitosamente");
+            	System.out.println("El Cliente ha iniciado sesion\n");
+            	pw.println("ACK");
             }
             
             // mensaje 2 - reto
-            if (str.startsWith("reto -> ")) {
+            if (str.startsWith("<")) {
             	System.out.println("Cliente: " + str + "\n");
-            	reto = str.substring(8, str.length());
+            	reto = str.substring(1, str.length()-1);
+            	System.out.println("El cliente ha enviado el reto: " + reto + "\n");
+            	
+            	// TODO: CIFRAR RETO CON SK
+            	// TODO: ENVIAR RETO CIFRADO AL CLIENTE
             }
             
             // TODO: DEMAS MENSAJES
