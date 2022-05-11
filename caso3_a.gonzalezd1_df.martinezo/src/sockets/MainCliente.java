@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
 public class MainCliente {
-	
+
 	/**
-	 * Metodo main del Cliente
-	 * Llama al metodo start() de la clase Cliente
+	 * Metodo main del Cliente Llama al metodo start() de la clase Cliente
+	 * 
 	 * @param args
 	 * @throws IOException
 	 */
@@ -16,7 +16,6 @@ public class MainCliente {
 		try {
 			cliente.start();
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
