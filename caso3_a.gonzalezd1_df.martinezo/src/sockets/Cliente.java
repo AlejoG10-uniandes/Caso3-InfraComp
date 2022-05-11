@@ -142,8 +142,9 @@ public class Cliente extends Conexion {
 		for (int i = 0; i < l; i++) {
 			// primer digito: min ≠ 0
 			min = i == 0 ? 1 : 0;
-			rnd = (int) (Math.random() * max) + min;
-			reto += rnd + "";
+			int rnd = (int) (Math.random() * max) + min;
+      		reto+=rnd+"";
+
 			retoMensaje += rnd;
 		}
 
