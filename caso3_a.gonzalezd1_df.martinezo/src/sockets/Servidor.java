@@ -11,7 +11,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.util.ArrayList;
 import java.util.Base64;
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
@@ -71,6 +70,25 @@ public class Servidor extends Conexion {
 	private Tabla tabla;
 
 	/**
+	 * Estado de paquete respuesta
+	 */
+	private String estadoPaquete;
+
+	/**
+	 * Estado de paquete respuesta
+	 */
+	private String idPaquete;
+
+	private double tiempoAsimetrico;
+
+	private double tiempoSimetrico;
+
+
+
+
+
+
+	/**
 	 * METODOS
 	 */
 
@@ -82,6 +100,11 @@ public class Servidor extends Conexion {
 	public Servidor() throws IOException {
 		ss = new ServerSocket(PORT);
 		tabla = new Tabla();
+		estadoPaquete = "";
+		idPaquete="";
+		tiempoAsimetrico=0.0;
+		tiempoSimetrico=0.0;
+
 	}
 
 	/**
@@ -106,7 +129,11 @@ public class Servidor extends Conexion {
 				System.out.println("Cliente: " + str + "\n");
 				reto = str.substring(1, str.length() - 1);
 
+
+				long inicio = System.currentTimeMillis();
 				String encodedMessage = cifrarConLlavePrivada(reto);
+				long fin = System.currentTimeMillis();
+         		tiempoAsimetrico = (double) ((fin - inicio));
 				// mensaje 4 - reto cifrado
 				pw.println(encodedMessage);
 			}
@@ -116,6 +143,7 @@ public class Servidor extends Conexion {
 				String llaveString = str.substring(4, str.length());
 				byte[] decryptedMessageBytes = descifrarConLlavePrivada(llaveString);
 				llaveSimetrica = new SecretKeySpec(decryptedMessageBytes, 0, decryptedMessageBytes.length, "AES");
+				
 				
 				pw.println("ACK");
 			}
@@ -136,7 +164,6 @@ public class Servidor extends Conexion {
 					pw.println("ERROR");
 			}
 
-			String idPaquete = "";
 			
 			// TODO: ERROR!
 			// mensaje 6: recibe idPaquete y verifica
@@ -146,17 +173,31 @@ public class Servidor extends Conexion {
 				idPaquete = descifrarConLlaveSimetrica(idPaqueteEncoded);
 
 				int indice = tabla.nombrePaquete(nombreDescifrado, idPaquete);
-
 				if (tabla.nombrePaquete(nombreDescifrado, idPaquete) >= 0) {
-					pw.print(tabla.darTablaEstados().get(indice) + "");
+
+					estadoPaquete = tabla.darTablaEstados().get(indice);
+					pw.println(cifrarConLlaveSimetrica(estadoPaquete + ""));
+
 				} else {
-					pw.println("ERROR");
+					pw.println("DESCONOCIDO");
 				}
 			}
 
 			if (str.startsWith("ACK")) {
 				try {
-					pw.print(codigoResumen(idPaquete));
+						// Prueba de cifrado de reto con llave simetrica
+					long inicio1 = System.currentTimeMillis();
+					String ejempoCifradoSimetrico = cifrarConLlaveSimetrica(reto);
+					long fin1 = System.currentTimeMillis();
+					tiempoSimetrico = (double) ((fin1 - inicio1));
+
+					System.out.println(tiempoSimetrico);
+					System.out.println(tiempoAsimetrico);
+
+					pw.println("TS: " + tiempoSimetrico);
+					pw.println("TA: " + tiempoAsimetrico);
+
+					pw.println("PKT: " +codigoResumen(estadoPaquete+tiempoSimetrico+tiempoAsimetrico));
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -260,7 +301,7 @@ public class Servidor extends Conexion {
 		String respuesta = "";
 
 		try {
-			cipher = Cipher.getInstance("AES/EBC/PKCS5Padding");
+			cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
 			cipher.init(Cipher.ENCRYPT_MODE, llaveSimetrica);
 			byte[] cipherText = cipher.doFinal(mensaje.getBytes());
 			respuesta = Base64.getEncoder().encodeToString(cipherText);
@@ -278,7 +319,7 @@ public class Servidor extends Conexion {
 		String respuesta = "";
 
 		try {
-			cipher = Cipher.getInstance("AES/EBC/PKCS5Padding");
+			cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
 			cipher.init(Cipher.DECRYPT_MODE, llaveSimetrica);
 
 			byte[] plainText = cipher.doFinal(Base64.getDecoder().decode(mensaje));
@@ -297,7 +338,7 @@ public class Servidor extends Conexion {
 		// Mensajes iniciales
 		System.out.println("*** Servidor ***\n");
 		System.out.println("Iniciando Servidor en el puerto: " + PORT);
-		System.out.println("Esperando conexión...");
+		System.out.println("Esperando conexion...");
 		generarLlavesPublicaPrivada();
 		// Socket del Cliente
 		cs = ss.accept();
