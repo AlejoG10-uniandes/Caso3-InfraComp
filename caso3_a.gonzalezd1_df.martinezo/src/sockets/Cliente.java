@@ -65,6 +65,10 @@ public class Cliente extends Conexion {
 	 */
 	private BufferedReader bf;
 
+	private String tiempoAsimetrico;
+
+	private String tiempoSimetrico;
+
 	/**
 	 * METODOS
 	 */
@@ -246,14 +250,14 @@ public class Cliente extends Conexion {
 	 */
 	public void recibirEstado() throws IOException {
 		String str = bf.readLine();
-		if (str.equals("ERROR")) {
+		if (str.equals("DESCONOCIDO")) {
 			terminarConexion();
 			return;
 		}
 
-		estadoPaquete = str;
+		estadoPaquete = descifrarConLlaveSimetrica(str);
 		
-		System.out.println("[1] Escriba ACK para confirmar: ");
+		System.out.println("\n[1] Escriba ACK para confirmar: ");
 		String ack = scn.nextLine();
 		
 		pw.println(ack);
@@ -268,20 +272,44 @@ public class Cliente extends Conexion {
 	 */
 	public void recibirResumen() throws IOException {
 		String str = bf.readLine();
+		if(str.startsWith("TS: ")){
+			tiempoSimetrico = str.substring(4, str.length());
 
-		String comparacion;
-		try {
-			comparacion = codigoResumen(estadoPaquete);
-			System.out.println(str);
-			System.out.println(comparacion);
-			if (str.equals(comparacion)) {
-				pw.println("TERMINAR");
-			} else {
-				terminarConexion();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
+		str = bf.readLine();
+
+		if(str.startsWith("TA: ")){
+			tiempoAsimetrico = str.substring(4,str.length());
+		}
+		str = bf.readLine();
+
+		if(str.startsWith("PKT: "))
+		{
+			str = str.substring(5, str.length());
+
+			try {
+				
+				String comparacion = codigoResumen(estadoPaquete+tiempoSimetrico+tiempoAsimetrico);
+
+				if (str.equals(comparacion)) {
+					System.out.println("\nEl estado del paquete consultado es: " + estadoPaquete);
+					System.out.println("El tiempo de cifrado simetrico del reto es: " + tiempoSimetrico + " milisegundos");
+					System.out.println("El tiempo de cifrado asimetrico del reto es: " + tiempoAsimetrico + " milisegundos");
+
+					pw.println("TERMINAR");
+
+				} else {
+					System.out.println("ERROR: No se pudo verificar la informacion");
+
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+
+		
 	}
 
 	public String codigoResumen(String mensaje) throws Exception {
@@ -355,6 +383,27 @@ public class Cliente extends Conexion {
 		return respuesta;
 	}
 
+
+	public String descifrarConLlaveSimetrica(String mensaje) {
+		Cipher cipher;
+		String respuesta = "";
+
+		try {
+			cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+			cipher.init(Cipher.DECRYPT_MODE, llaveSimetrica);
+
+			byte[] plainText = cipher.doFinal(Base64.getDecoder().decode(mensaje));
+
+			respuesta = new String(plainText);
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
+				| BadPaddingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return respuesta;
+	}
+
 	public void generateKey(int n) throws NoSuchAlgorithmException {
 		KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
 		keyGenerator.init(n);
@@ -371,7 +420,7 @@ public class Cliente extends Conexion {
 		pw.flush();
 		scn.close();
 		cs.close();
-		System.out.println("Fin de la conexión.\n");
+		System.out.println("\nFin de la conexion.\n");
 	}
 
 	/**
