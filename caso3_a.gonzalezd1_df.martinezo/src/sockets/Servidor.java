@@ -148,7 +148,7 @@ public class Servidor extends Conexion {
 				int indice = tabla.nombrePaquete(nombreDescifrado, idPaquete);
 
 				if (tabla.nombrePaquete(nombreDescifrado, idPaquete) >= 0) {
-					pw.print(tabla.darTablaEstados().get(indice) + "");
+					pw.println(tabla.darTablaEstados().get(indice) + "");
 				} else {
 					pw.println("ERROR");
 				}
@@ -156,7 +156,7 @@ public class Servidor extends Conexion {
 
 			if (str.startsWith("ACK")) {
 				try {
-					pw.print(codigoResumen(idPaquete));
+					pw.println(codigoResumen(idPaquete));
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -278,7 +278,7 @@ public class Servidor extends Conexion {
 		String respuesta = "";
 
 		try {
-			cipher = Cipher.getInstance("AES/EBC/PKCS5Padding");
+			cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
 			cipher.init(Cipher.DECRYPT_MODE, llaveSimetrica);
 
 			byte[] plainText = cipher.doFinal(Base64.getDecoder().decode(mensaje));

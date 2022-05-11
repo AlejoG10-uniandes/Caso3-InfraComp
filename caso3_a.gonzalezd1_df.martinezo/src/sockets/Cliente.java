@@ -142,7 +142,7 @@ public class Cliente extends Conexion {
 		for (int i = 0; i < l; i++) {
 			// primer digito: min ≠ 0
 			min = i == 0 ? 1 : 0;
-			int rnd = (int) (Math.random() * max) + min;
+			rnd = (int) (Math.random() * max) + min;
       		reto+=rnd+"";
 
 			retoMensaje += rnd;
@@ -233,7 +233,7 @@ public class Cliente extends Conexion {
 			// TODO: ERROR!
 			String encodedPaquete = cifrarConLlaveSimetrica(idPaquete);
 
-			pw.print("ID-PKT: " + encodedPaquete);
+			pw.println("ID-PKT: " + encodedPaquete);
 		}
 
 		pw.flush();
@@ -272,6 +272,8 @@ public class Cliente extends Conexion {
 		String comparacion;
 		try {
 			comparacion = codigoResumen(estadoPaquete);
+			System.out.println(str);
+			System.out.println(comparacion);
 			if (str.equals(comparacion)) {
 				pw.println("TERMINAR");
 			} else {
@@ -340,7 +342,7 @@ public class Cliente extends Conexion {
 		String respuesta = "";
 
 		try {
-			cipher = Cipher.getInstance("AES/EBC/PKCS5Padding");
+			cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
 			cipher.init(Cipher.ENCRYPT_MODE, llaveSimetrica);
 			byte[] cipherText = cipher.doFinal(mensaje.getBytes());
 			respuesta = Base64.getEncoder().encodeToString(cipherText);
