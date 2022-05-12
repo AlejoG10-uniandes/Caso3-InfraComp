@@ -10,13 +10,10 @@ public class MainCliente {
 	 * 
 	 * @param args
 	 * @throws IOException
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
 		Cliente cliente = new Cliente();
-		try {
-			cliente.start();
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
+		cliente.start();
 	}
 }
