@@ -70,23 +70,29 @@ public class Servidor extends Conexion {
 	private Tabla tabla;
 
 	/**
+	 * Nombre del Cliente
+	 */
+	private String nombre;
+	
+	/**
 	 * Estado de paquete respuesta
 	 */
 	private String estadoPaquete;
 
 	/**
-	 * Estado de paquete respuesta
+	 * ID de paquete respuesta
 	 */
 	private String idPaquete;
 
+	/**
+	 * Tiempo asimetrico
+	 */
 	private double tiempoAsimetrico;
-
+	
+	/**
+	 * Tiempo Simetrico
+	 */
 	private double tiempoSimetrico;
-
-
-
-
-
 
 	/**
 	 * METODOS
@@ -100,11 +106,11 @@ public class Servidor extends Conexion {
 	public Servidor() throws IOException {
 		ss = new ServerSocket(PORT);
 		tabla = new Tabla();
+		nombre = "";
+		idPaquete = "";
 		estadoPaquete = "";
-		idPaquete="";
-		tiempoAsimetrico=0.0;
-		tiempoSimetrico=0.0;
-
+		tiempoAsimetrico = 0.0;
+		tiempoSimetrico = 0.0;
 	}
 
 	/**
@@ -123,57 +129,53 @@ public class Servidor extends Conexion {
 				pw.println("ACK");
 			}
 
-			// mensaje 3 y mensaje 4
-			if (str.startsWith("<")) {
+			// mensaje 3 y mensaje 4 - Reto
+			if (str.startsWith("Reto <")) {
 				// mensaje 3 - reto
 				System.out.println("Cliente: " + str + "\n");
-				reto = str.substring(1, str.length() - 1);
+				reto = str.substring(6, str.length() - 1);
 
-
-				long inicio = System.currentTimeMillis();
+				long inicio = System.nanoTime();
 				String encodedMessage = cifrarConLlavePrivada(reto);
-				long fin = System.currentTimeMillis();
-         		tiempoAsimetrico = (double) ((fin - inicio));
+				long fin = System.nanoTime();
+				tiempoAsimetrico = (double) ((fin - inicio));
 				// mensaje 4 - reto cifrado
 				pw.println(encodedMessage);
 			}
 
 			// mensaje 5 - recibe LS cifrada y confirma con "ACK"
-			if (str.startsWith("LS: ")) {
-				String llaveString = str.substring(4, str.length());
+			if (str.startsWith("LS <")) {
+				System.out.println("Cliente: " + str + "\n");
+				String llaveString = str.substring(4, str.length()-1);
 				byte[] decryptedMessageBytes = descifrarConLlavePrivada(llaveString);
 				llaveSimetrica = new SecretKeySpec(decryptedMessageBytes, 0, decryptedMessageBytes.length, "AES");
-				
-				
+
 				pw.println("ACK");
 			}
 
-			String nombreDescifrado = "";
-
 			// mensaje 6 - recibe nombre de cliente, descifra y verifica en tabla
-			if (str.startsWith("Nombre -> ")) {
+			if (str.startsWith("Nombre <")) {
 				System.out.println("Cliente: " + str + "\n");
-				String nombreencriptado = str.substring(10, str.length());
+				String nombreencriptado = str.substring(8, str.length()-1);
 				byte[] decryptedMessageBytes = descifrarConLlavePrivada(nombreencriptado);
-				nombreDescifrado = new String(decryptedMessageBytes, StandardCharsets.UTF_8);
-				
+				nombre = new String(decryptedMessageBytes, StandardCharsets.UTF_8);
+
 				// verificacion en la tabla
-				if (tabla.existeNombre(nombreDescifrado))
+				if (tabla.existeNombre(nombre))
 					pw.println("ACK");
 				else
 					pw.println("ERROR");
 			}
 
-			
-			// TODO: ERROR!
 			// mensaje 6: recibe idPaquete y verifica
-			if (str.startsWith("ID-PKT: ")) {
-				String idPaqueteEncoded = str.substring(8, str.length());
+			if (str.startsWith("ID-PKT <")) {
+				System.out.println("Cliente: " + str + "\n");
+				String idPaqueteEncoded = str.substring(8, str.length()-1);
 
 				idPaquete = descifrarConLlaveSimetrica(idPaqueteEncoded);
 
-				int indice = tabla.nombrePaquete(nombreDescifrado, idPaquete);
-				if (tabla.nombrePaquete(nombreDescifrado, idPaquete) >= 0) {
+				int indice = tabla.nombrePaquete(nombre, idPaquete);
+				if (tabla.nombrePaquete(nombre, idPaquete) >= 0) {
 
 					estadoPaquete = tabla.darTablaEstados().get(indice);
 					pw.println(cifrarConLlaveSimetrica(estadoPaquete + ""));
@@ -185,28 +187,35 @@ public class Servidor extends Conexion {
 
 			if (str.startsWith("ACK")) {
 				try {
-						// Prueba de cifrado de reto con llave simetrica
-					long inicio1 = System.currentTimeMillis();
-					String ejempoCifradoSimetrico = cifrarConLlaveSimetrica(reto);
-					long fin1 = System.currentTimeMillis();
+					// Prueba de cifrado de reto con llave simetrica
+					long inicio1 = System.nanoTime();
+					cifrarConLlaveSimetrica(reto);
+					long fin1 = System.nanoTime();
 					tiempoSimetrico = (double) ((fin1 - inicio1));
 
-					System.out.println(tiempoSimetrico);
-					System.out.println(tiempoAsimetrico);
+					//System.out.println(tiempoSimetrico);
+					//System.out.println(tiempoAsimetrico);
 
-					pw.println("TS: " + tiempoSimetrico);
-					pw.println("TA: " + tiempoAsimetrico);
+					pw.println("TS <" + tiempoSimetrico + ">");
+					pw.println("TA <" + tiempoAsimetrico + ">");
 
-					pw.println("PKT: " +codigoResumen(estadoPaquete+tiempoSimetrico+tiempoAsimetrico));
+					pw.println("DIGEST <" + codigoResumen(reto + nombre + idPaquete + estadoPaquete + tiempoSimetrico + tiempoAsimetrico) + ">");
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-			
+
 			pw.flush();
 		}
+		
+		if (str.equalsIgnoreCase("TERMINAR")) {
+			System.out.println("Cliente: " + str + "\n");
+		}
 	}
+	
+	/**
+	 * Metodos auxiliares
+	 */
 
 	// Referencia: https://gist.github.com/lesstif/655f6b295a619306405621e02634a08d
 	public String codigoResumen(String mensaje) throws Exception {
@@ -234,11 +243,10 @@ public class Servidor extends Conexion {
 			sk = pair.getPrivate();
 			pk = pair.getPublic();
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		try (FileOutputStream fos = new FileOutputStream("public.key")) {
+		
+		try (FileOutputStream fos = new FileOutputStream("./keys/public.key")) {
 			fos.write(pk.getEncoded());
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -288,7 +296,6 @@ public class Servidor extends Conexion {
 			encodedMessage = Base64.getEncoder().encodeToString(encryptedMessageBytes);
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
 				| BadPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -307,7 +314,6 @@ public class Servidor extends Conexion {
 			respuesta = Base64.getEncoder().encodeToString(cipherText);
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
 				| BadPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -327,13 +333,20 @@ public class Servidor extends Conexion {
 			respuesta = new String(plainText);
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
 				| BadPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 		return respuesta;
 	}
-
+	
+	public void setLlaveSimetrica(SecretKey LS) {
+		this.llaveSimetrica = LS;
+	}
+	
+	public ServerSocket getSS() {
+		return ss;
+	}
+	
 	public void start() throws IOException {
 		// Mensajes iniciales
 		System.out.println("*** Servidor ***\n");

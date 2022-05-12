@@ -2,19 +2,17 @@ package sockets;
 
 public class Conexion {
 
-  /**
-   * ----------
-   * CONSTANTES
-   * ----------
-   */
+	/**
+	 * CONSTANTES
+	 */
 
-  /**
-   * Host de la conexion
-   */
-  protected static final String HOST = "localhost";
+	/**
+	 * Host de la conexion
+	 */
+	protected static final String HOST = "localhost";
 
-  /**
-   * Puerto de la conexion
-   */
-  protected static final int PORT = 1234;
+	/**
+	 * Puerto de la conexion
+	 */
+	protected static final int PORT = 1234;
 }

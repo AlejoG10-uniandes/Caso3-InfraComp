@@ -21,7 +21,7 @@ public class Tabla {
 	private static final int PKT_ENTREGADO = 5;
 
 	private static final int PKT_DESCONOCIDO = 6;
-	
+
 	/**
 	 * ATRIBUTOS
 	 */
@@ -53,7 +53,7 @@ public class Tabla {
 		ArrayList<String> nombres = new ArrayList<>();
 		ArrayList<String> idsPkts = new ArrayList<>();
 		ArrayList<String> estadosPkts = new ArrayList<>();
-		
+
 		// nombres
 		for (int i = 0; i < 8; i++) {
 			nombres.add("carlos");
@@ -67,34 +67,34 @@ public class Tabla {
 		for (int i = 0; i < 32; i++) {
 			idsPkts.add("id-" + i);
 
-			if (i%7 == PKT_EN_OFICINA)
+			if (i % 7 == PKT_EN_OFICINA)
 				estado = "PKT_EN_OFICINA";
-		
-			if (i%7 == PKT_RECOGIDO)
+
+			if (i % 7 == PKT_RECOGIDO)
 				estado = "PKT_RECOGIDO";
-			
-			if (i%7 == PKT_EN_CLASIFICACION)
+
+			if (i % 7 == PKT_EN_CLASIFICACION)
 				estado = "PKT_EN_CLASIFICACON";
-			
-			if (i%7 == PKT_DESPACHADO)
+
+			if (i % 7 == PKT_DESPACHADO)
 				estado = "PKT_DESPACHADO";
-			
-			if (i%7 == PKT_EN_ENTREGA)
+
+			if (i % 7 == PKT_EN_ENTREGA)
 				estado = "PKT_EN_ENTREGA";
-			
-			if (i%7 == PKT_ENTREGADO)
+
+			if (i % 7 == PKT_ENTREGADO)
 				estado = "PKT_ENTREGADO";
-			
-			if (i%7 == PKT_DESCONOCIDO)
+
+			if (i % 7 == PKT_DESCONOCIDO)
 				estado = "PKT_DESCONOCIDO";
-		
+
 			estadosPkts.add(estado);
 		}
-		
+
 		// asignacion
 		this.nombres = nombres;
-		this.estadosPkts = estadosPkts;
 		this.idsPkts = idsPkts;
+		this.estadosPkts = estadosPkts;
 	}
 
 	/**
@@ -124,18 +124,13 @@ public class Tabla {
 	 */
 	public int nombrePaquete(String nombre, String idPaquete) {
 		boolean termine = false;
-		int indiceNombre = 0;
 		int indiceRespuesta = -1;
 
 		for (int i = 0; i < nombres.size() && !termine; i++) {
-			if (nombres.get(i).equals(nombre)) {
-				indiceNombre = i;
+			if (nombres.get(i).equals(nombre) && idsPkts.get(i).equals(idPaquete)) {
+				indiceRespuesta = i;
 				termine = true;
 			}
-		}
-
-		if (idsPkts.get(indiceNombre).equals(idPaquete)) {
-			indiceRespuesta = indiceNombre;
 		}
 
 		return indiceRespuesta;
